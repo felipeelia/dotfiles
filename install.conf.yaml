@@ -1,0 +1,10 @@
+- clean: ['~']
+
+- link:
+    ~/.atom/keymap.cson: atom/keymap.cson
+    ~/.bash_aliases: .bash_aliases
+    ~/bin: bin
+
+- shell:
+  - [git submodule update --init --recursive, Installing submodules]
+  - ['mkdir -p ~/scripts/ && wget https://raw.githubusercontent.com/wp-cli/wp-cli/master/utils/wp-completion.bash -O ~/scripts/wp-completion.bash && source ~/.bash_aliases']

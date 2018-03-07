@@ -1,0 +1,8 @@
+#!/bin/bash 
+export wp_docker='docker exec -i docker_wordpress_1 wp'
+export DB_HOST="mysql"
+export DB_USER="wordpress"
+export DB_PASS="wordpress"
+export DB_NAME="wordpress"
+export DOCKER_INST=1
+source $( dirname "${BASH_SOURCE[0]}" )/wp-install

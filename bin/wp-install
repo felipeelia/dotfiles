@@ -1,0 +1,167 @@
+#!/bin/bash 
+set -euo pipefail
+
+# define variáveis padrão para o BD (com possibilidade de receber de outro script)
+DB_HOST="${DB_HOST:-127.0.0.1}"
+DB_USER="${DB_USER:-root}"
+DB_PASS="${DB_PASS:-root}"
+DB_NAME="${DB_NAME:-}"
+DOCKER_INST="${DOCKER_INST:-0}"
+
+if (( DOCKER_INST )); then
+	DIR_INSTALACAO=
+	WPCLI=$wp_docker
+else
+	DIR_INSTALACAO="${PWD##*/htdocs/}/"
+	WPCLI='wp'
+fi
+
+clear
+
+echo "================================================================="
+echo "                Instalador do WordPress em pt-BR"
+echo "================================================================="
+
+
+# pede ao usuário que informe o nome do banco de dados
+if [[ "$DB_NAME" = "" ]]; then
+	echo "Nome do banco de dados: "
+	read -e DB_NAME
+fi
+
+# pede ao usuário o nome do site
+echo "Nome do site: "
+read -e NOME_SITE
+
+# pede ao usuário o nome do usuário administrador do WordPress
+echo "Nome do usuário: "
+read -e NOME_USUARIO
+
+# pede ao usuário o nome do tema (os arquivos serão copiados do nosso starter theme)
+echo "Nome do tema (slug). Deixe em branco para não copiar o tema: "
+read -e NOME_TEMA
+
+# pede ao usuário o prefixo para as tabelas do BD
+echo "Prefixo das tabelas. Deixe em branco para usar o padrão (wp_): "
+read -e PREFIXO_DB
+if [[ "$PREFIXO_DB" = "" ]]; then
+	PREFIXO_DB="wp_"
+fi
+
+# pede ao usuário o e-mail do primeiro usuário
+echo "E-mail do administrador. Deixe em branco para usar o padrão: "
+read -e EMAIL_USUARIO
+if [[ "$EMAIL_USUARIO" = "" ]]; then
+	EMAIL_USUARIO="contato+wordpress@duo-me.com"
+fi
+
+# se o usuário informar qualquer coisa diferente de s, sai do script
+echo "Instalar? (s/n)"
+read -e SHOULD_RUN
+if [[ "$SHOULD_RUN" != 's' ]]; then
+	exit 0;
+fi
+
+clear
+
+# faz o download dos arquivos do WordPress
+if ! [ -e ./index.php ]; then
+	$WPCLI core download --locale=pt_BR
+fi
+
+# cria o arquivo wp-config.php
+# host como ip por incompatibilidade do meu PHP cli
+if ! [ -e ./wp-config.php ]; then
+	$WPCLI core config --dbhost="$DB_HOST" --dbname="$DB_NAME" --dbuser="$DB_USER" --dbpass="$DB_PASS" --dbprefix=$PREFIXO_DB --locale=pt_BR --extra-php <<PHP
+define( 'WPCF7_AUTOP', false );
+PHP
+fi
+
+# gera uma SENHA aleatória com 12 caracteres (será exibida na finalização da instalação)
+# coloca ! na frente para evitar parar o script
+! SENHA=$(LC_CTYPE=C tr -dc A-Za-z0-9_\!\@\#\$\%\^\&\*\(\)-+= < /dev/urandom | head -c 12)
+
+echo 'Tentando criar o banco de dados e instalar o WordPress'
+set +e
+$WPCLI db create
+set -e
+echo 'Instalando o WordPress'
+$WPCLI core install --url="http://localhost/$DIR_INSTALACAO" --title="$NOME_SITE" --admin_user="$NOME_USUARIO" --admin_password="$SENHA" --admin_email="$EMAIL_USUARIO" --skip-email
+
+echo 'Criando página inicial'
+# exclui a página de exemplo e cria outra para página inicial
+# TODO: não seria melhor editar a que já existe?
+$WPCLI post delete $($WPCLI post list --post_type=page --posts_per_page=1 --post_status=publish --pagename="pagina-exemplo" --field=ID --format=ids)
+$WPCLI post create --post_type=page --post_title="Página inicial" --post_status=publish --post_author=$($WPCLI user get $NOME_USUARIO --field=ID)
+
+# define a página inicial como página estática
+$WPCLI option update show_on_front 'page'
+
+# define como página inicial a página criada anteriormente
+$WPCLI option update page_on_front $($WPCLI post list --post_type=page --post_status=publish --posts_per_page=1 --pagename="pagina-inicial" --field=ID --format=ids)
+
+
+echo 'Criando .htaccess'
+$WPCLI rewrite structure '/%postname%/' --hard
+$WPCLI rewrite flush --hard
+
+echo 'Excluindo os plugins akismet e hello dolly'
+$WPCLI plugin delete akismet
+$WPCLI plugin delete hello
+
+# instala os plugins que mais usamos
+echo 'Instalando plugins mais usados'
+$WPCLI plugin install custom-field-suite cfs-cf7 --activate
+# wp plugin install cfs-auto-loop-label --activate
+
+# baixa, atualiza as traduções e ativa, para as mensagens já serem sem portugues
+$WPCLI plugin install contact-form-7 wordpress-seo
+$WPCLI core language update
+$WPCLI plugin activate contact-form-7 wordpress-seo
+
+clear
+
+echo 'Criando menu'
+$WPCLI menu create "Menu principal"
+
+# copia e ativa o nosso starter theme para o projeto
+if [[ !  -z  $NOME_TEMA  ]]; then
+	echo 'Criando tema'
+	cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/wp-starter-theme/. ./wp-content/themes/"$NOME_TEMA"/
+	$WPCLI theme activate "$NOME_TEMA"
+
+	#substitui a string 'starter' pelo nome do tema nos arquivos
+	grep -rl starter ./wp-content/themes/"$NOME_TEMA"/ | xargs sed -i s/starter/"$NOME_TEMA"/g
+
+	# coloca o menu criado como o menu do tema
+	$WPCLI menu location assign menu-principal menu-principal
+
+	# exclui os temas originais
+	$WPCLI theme delete twentyfifteen
+	$WPCLI theme delete twentysixteen
+	$WPCLI theme delete twentyseventeen
+fi
+
+# copia o plugin que esconde os itens do painel
+echo 'Criando tema'
+cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/plugins/wp-clear-admin/. ./wp-content/plugins/wp-clear-admin/
+
+
+# copia o searchreplacedb para a migração
+echo 'Copiando searchreplacedb'
+cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/searchreplacedb/. ./searchreplacedb/
+
+clear
+
+echo "================================================================="
+echo "A instalação está completa. Anote seus dados de login:"
+echo ""
+echo "Usuário: $NOME_USUARIO"
+echo "Senha: $SENHA"
+echo ""
+echo "================================================================="
+
+# abre o site no Google Chrome
+google-chrome -a "http://localhost/${DIR_INSTALACAO}wp-login.php" &
+
+exit 0
