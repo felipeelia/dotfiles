@@ -9,6 +9,18 @@ echo "-------------------------------------------"
 
 read -p "VERSION: " VERSION
 
+echo "CHANGES (One per line, CTRL+D to stop): "
+readarray -t CHANGELOG_ARR
+CHANGELOG=
+for CHANGELOG_LINE in "${CHANGELOG_ARR[@]}";
+do
+    if [[ "$CHANGELOG" != "" ]]; then
+    	CHANGELOG+="\n* "
+    fi
+    CHANGELOG+="${CHANGELOG_LINE}"
+done
+CHANGELOG="* ${CHANGELOG}"
+
 # Get the current plugin directory name.
 # This need to match with the plugin slug.
 PROJECT_NAME=${PWD##*/}
@@ -22,9 +34,20 @@ SVN_REPOSITORIES_PATH=~/projetos/wordpress/svn-plugins
 # Project SVN path.
 SVN_PATH=$SVN_REPOSITORIES_PATH/$PROJECT_NAME
 
+echo "Updating readme (stable tag and changelog)"
+sed -i "s/^Stable tag: .*$/Stable tag: ${VERSION}/" readme.txt
+sed -n -i '/== Changelog ==/q;p' readme.txt
+echo -e "== Changelog ==\n\nTo read the full list check our changelog.txt\n\n= Latest =\n\n${CHANGELOG}" >> readme.txt
+
+echo "Updating changelog.txt"
+echo -e "\n= ${VERSION} - $(date +'%Y/%m/%d') =\n\n${CHANGELOG}\n" >> changelog.txt
+
+echo "Generating README.md"
+grunt readme
+
 echo "Commiting and creating tag on Git"
 
-git commit -am "Release "${VERSION}", see readme.txt for changelog."
+git commit -am "Release "${VERSION}", see changelog.txt for changes."
 git tag $VERSION
 git push origin master --tags
 
@@ -47,6 +70,7 @@ rsync ./ $SVN_PATH/trunk/ --recursive --verbose --delete --delete-excluded \
   --exclude=Gruntfile.js \
   --exclude=node_modules/ \
   --exclude=package.json \
+  --exclude=phpcs.xml \
   --exclude=phpcs.ruleset.xml \
   --exclude=phpunit.xml \
   --exclude=phpunit.xml.dist \

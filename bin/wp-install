@@ -124,6 +124,11 @@ clear
 echo 'Criando menu'
 $WPCLI menu create "Menu principal"
 
+if (( DOCKER_INST )); then
+    sudo chown -R $USER:$USER ./wp-content/themes
+    sudo chown -R $USER:$USER ./wp-content/plugins
+fi
+
 # copia e ativa o nosso starter theme para o projeto
 if [[ !  -z  $NOME_TEMA  ]]; then
 	echo 'Criando tema'
