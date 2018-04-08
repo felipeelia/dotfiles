@@ -1,3 +1,6 @@
 [submodule "dotbot"]
 	path = dotbot
 	url = https://github.com/anishathalye/dotbot
+[submodule "nvm"]
+	path = nvm
+	url = https://github.com/creationix/nvm
