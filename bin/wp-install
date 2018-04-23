@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 set -euo pipefail
 
 # define variáveis padrão para o BD (com possibilidade de receber de outro script)
@@ -38,7 +38,7 @@ echo "Nome do usuário: "
 read -e NOME_USUARIO
 
 # pede ao usuário o nome do tema (os arquivos serão copiados do nosso starter theme)
-echo "Nome do tema (slug). Deixe em branco para não copiar o tema: "
+echo "Nome do tema (slug, não iniciar com números). Deixe em branco para não copiar o tema: "
 read -e NOME_TEMA
 
 # pede ao usuário o prefixo para as tabelas do BD
@@ -111,8 +111,7 @@ $WPCLI plugin delete hello
 
 # instala os plugins que mais usamos
 echo 'Instalando plugins mais usados'
-$WPCLI plugin install custom-field-suite cfs-cf7 --activate
-# wp plugin install cfs-auto-loop-label --activate
+$WPCLI plugin install custom-field-suite cfs-cf7 cfs-auto-loop-label --activate
 
 # baixa, atualiza as traduções e ativa, para as mensagens já serem sem portugues
 $WPCLI plugin install contact-form-7 wordpress-seo
@@ -123,11 +122,6 @@ clear
 
 echo 'Criando menu'
 $WPCLI menu create "Menu principal"
-
-if (( DOCKER_INST )); then
-    sudo chown -R $USER:$USER ./wp-content/themes
-    sudo chown -R $USER:$USER ./wp-content/plugins
-fi
 
 # copia e ativa o nosso starter theme para o projeto
 if [[ !  -z  $NOME_TEMA  ]]; then
@@ -152,10 +146,6 @@ echo 'Criando tema'
 cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/plugins/wp-clear-admin/. ./wp-content/plugins/wp-clear-admin/
 
 
-# copia o searchreplacedb para a migração
-echo 'Copiando searchreplacedb'
-cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/searchreplacedb/. ./searchreplacedb/
-
 clear
 
 echo "================================================================="
@@ -167,6 +157,6 @@ echo ""
 echo "================================================================="
 
 # abre o site no Google Chrome
-google-chrome -a "http://localhost/${DIR_INSTALACAO}wp-login.php" &
+# google-chrome -a "http://localhost/${DIR_INSTALACAO}wp-login.php" &
 
 exit 0
