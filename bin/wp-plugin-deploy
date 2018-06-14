@@ -36,11 +36,7 @@ SVN_PATH=$SVN_REPOSITORIES_PATH/$PROJECT_NAME
 
 echo "Updating plugin main file, stable tag and changelog"
 sed -i "s/^Stable tag: .*$/Stable tag: ${VERSION}/" readme.txt
-sed -i "s/^ * Version:     .*$/ * Version:     ${VERSION}/" $PROJECT_NAME.php
-
-echo "Conferir o arquivo principal do plugin e apagar esse comentário."
-exit;
-
+sed -i "s/^ \* Version:     .*$/ * Version:     ${VERSION}/" $PROJECT_NAME.php
 sed -n -i '/== Changelog ==/q;p' readme.txt
 echo -e "== Changelog ==\n\nTo read the full list check our changelog.txt\n\n= Latest =\n\n${CHANGELOG}" >> readme.txt
 
