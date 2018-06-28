@@ -7,3 +7,4 @@ export NVM_DIR=$(realpath "$HOME/.nvm")
 source ~/scripts/wp-completion.bash
 alias autochmod='find * -type d -exec chmod 755 {} \;; find * -type f -exec chmod 644 {} \;'
 alias dockerclear='docker rm -f $(docker ps -a -q)'
+alias syncfork="git fetch upstream master && git checkout master && git pull upstream master && git push -f origin master"
