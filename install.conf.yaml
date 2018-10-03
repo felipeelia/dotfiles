@@ -1,7 +1,6 @@
 - clean: ['~']
 
 - link:
-    ~/.atom/keymap.cson: atom/keymap.cson
     ~/.bash_aliases: .bash_aliases
     ~/bin: bin
     ~/.nvm: nvm
