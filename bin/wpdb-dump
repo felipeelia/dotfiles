@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Generate a php file that creates a SQL dump. Ideal for occasions when we only have access
+# to client's FTP.
+
+curl -O https://gist.githubusercontent.com/felipeelia/af117ffb9c61d1fb466655758b4293e4/raw/db-backup.php

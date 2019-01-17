@@ -1,3 +1,0 @@
-'atom-text-editor':
-    'ctrl-shift-l': 'editor:split-selections-into-lines'
-    'ctrl-shift-j': 'grammar-selector:show'
