@@ -52,7 +52,7 @@ fi
 echo "E-mail do administrador. Deixe em branco para usar o padrão: "
 read -e EMAIL_USUARIO
 if [[ "$EMAIL_USUARIO" = "" ]]; then
-	EMAIL_USUARIO="contato+wordpress@duo-me.com"
+	EMAIL_USUARIO="felipe.elia@gmail.com"
 fi
 
 # se o usuário informar qualquer coisa diferente de s, sai do script
@@ -110,8 +110,8 @@ $WPCLI plugin delete akismet
 $WPCLI plugin delete hello
 
 # instala os plugins que mais usamos
-echo 'Instalando plugins mais usados'
-$WPCLI plugin install custom-field-suite cfs-cf7 cfs-auto-loop-label --activate
+# echo 'Instalando plugins mais usados'
+# $WPCLI plugin install custom-field-suite cfs-cf7 cfs-auto-loop-label --activate
 
 # baixa, atualiza as traduções e ativa, para as mensagens já serem sem portugues
 $WPCLI plugin install contact-form-7 wordpress-seo
@@ -126,7 +126,8 @@ $WPCLI menu create "Menu principal"
 # copia e ativa o nosso starter theme para o projeto
 if [[ !  -z  $NOME_TEMA  ]]; then
 	echo 'Criando tema'
-	cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/wp-starter-theme/. ./wp-content/themes/"$NOME_TEMA"/
+    mkdir ./wp-content/themes/"$NOME_TEMA"
+    git archive --remote=git@bitbucket.org:felipeelia/wp-starter-theme.git HEAD | tar x --directory ./wp-content/themes/"$NOME_TEMA"/
 	$WPCLI theme activate "$NOME_TEMA"
 
 	#substitui a string 'starter' pelo nome do tema nos arquivos
@@ -142,9 +143,9 @@ if [[ !  -z  $NOME_TEMA  ]]; then
 fi
 
 # copia o plugin que esconde os itens do painel
-echo 'Criando tema'
-cp -a ~/Dropbox\ \(duo\.me\)/Back-end/_util/plugins/wp-clear-admin/. ./wp-content/plugins/wp-clear-admin/
-
+echo 'Copiando plugin que oculta administração'
+mkdir ./wp-content/plugins/wp-clear-admin
+git archive --remote=git@bitbucket.org:felipeelia/wp-clear-admin.git HEAD | tar x --directory ./wp-content/plugins/wp-clear-admin/
 
 clear
 
