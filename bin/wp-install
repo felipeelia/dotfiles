@@ -115,7 +115,7 @@ $WPCLI plugin delete hello
 
 # baixa, atualiza as traduções e ativa, para as mensagens já serem sem portugues
 $WPCLI plugin install contact-form-7 wordpress-seo
-$WPCLI core language update
+$WPCLI language plugin install pt_BR --all
 $WPCLI plugin activate contact-form-7 wordpress-seo
 
 clear
