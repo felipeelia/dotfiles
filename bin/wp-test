@@ -1,0 +1,32 @@
+#!/bin/bash
+
+WPCLI='docker exec -i docker_wordpress_1 wp'
+
+# Baixa os arquivos do WordPress
+$WPCLI core download --locale=pt_BR
+ 
+# Cria o wp-config.php
+$WPCLI config create --dbhost=mysql --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --locale=pt_BR
+ 
+# Instala o WordPress
+$WPCLI core install --url="http://localhost" --title="WordPress" --admin_user=admin --admin_password=admin --admin_email=teste@dominio.com.br --skip-email
+ 
+# Baixa os plugins
+# wp plugin install contact-form-7 wordpress-seo
+ 
+# Baixa a tradução dos plugins
+# wp language plugin install pt_BR --all
+ 
+# Ativa os plugins
+# wp plugin activate contact-form-7 wordpress-seo
+ 
+# Cria a pasta do Odin
+mkdir wp-content/themes/odin
+ 
+# Baixa o Odin
+curl -L https://github.com/wpbrasil/odin/tarball/master | tar xz --strip=1 --directory ./wp-content/themes/odin/
+ 
+# Ativa o Odin
+$WPCLI theme activate odin
+ 
+exit 0

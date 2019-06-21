@@ -1,0 +1,41 @@
+#!/bin/bash
+set -euo pipefail
+
+
+clear
+echo "================================================================="
+echo "                Create SVN Repository on BitBucket"
+echo "================================================================="
+
+echo "Repository Name: "
+read -e REPO_NAME
+
+echo "Repository Slug: "
+read -e REPO_SLUG
+
+echo "Project (default COD): "
+read -e PROJECT_NAME
+if [[ "$PROJECT_NAME" = "" ]]; then
+	PROJECT_NAME="COD"
+fi
+
+echo "Password: "
+read -e -s PASSWORD
+
+echo "Run? (y/n)"
+read -e SHOULD_RUN
+if [[ "$SHOULD_RUN" != 'y' ]]; then
+	exit 0;
+fi
+
+curl -u felipe_elia:$PASSWORD -H "Content-Type: application/json" -d '{
+    "scm": "git",
+    "name": "'"$REPO_NAME"'",
+    "language": "php",
+    "is_private": true,
+    "project": {
+        "key": "'"$PROJECT_NAME"'"
+    }
+}' https://api.bitbucket.org/2.0/repositories/felipeelia/$REPO_SLUG | php -r 'echo "\n\ngit clone " . json_decode(fgets(STDIN))->links->clone[1]->href . "\n\n";'
+
+exit 0
