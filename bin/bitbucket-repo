@@ -4,7 +4,7 @@ set -euo pipefail
 
 clear
 echo "================================================================="
-echo "                Create SVN Repository on BitBucket"
+echo "                Create GIT Repository on BitBucket"
 echo "================================================================="
 
 echo "Repository Name: "
