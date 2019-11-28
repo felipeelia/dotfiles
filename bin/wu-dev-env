@@ -1,0 +1,58 @@
+#!/bin/bash
+
+WPCLI='docker exec -i docker_wordpress_1 wp'
+
+echo 'Adding .htaccess rules'
+cat << HTACCESS > ../docker/htaccess_dev
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# add a trailing slash to /wp-admin
+RewriteRule ^([_0-9a-zA-Z-]+/)?wp-admin$ $1wp-admin/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) $2 [L]
+RewriteRule ^([_0-9a-zA-Z-]+/)?(.*\.php)$ $2 [L]
+RewriteRule . index.php [L]
+HTACCESS
+
+# Download WordPress files
+$WPCLI core download
+ 
+# Create wp-config.php file
+$WPCLI config create --dbhost=mysql --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --extra-php <<PHP
+define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_DISPLAY', true );
+define( 'WP_DISABLE_FATAL_ERROR_HANDLER', true );
+PHP
+ 
+# Install WordPress Multisite
+$WPCLI core multisite-install --url="http://localhost" --title="WP Ultimo Test" --admin_user=admin --admin_password=admin --admin_email=admin@test.local --skip-email
+
+# Delete default plugins
+$WPCLI plugin delete akismet
+$WPCLI plugin delete hello
+
+# Install some plugins
+$WPCLI plugin install query-monitor --activate-network
+$WPCLI plugin install wp-crontrol --activate-network
+$WPCLI plugin install multisite-enhancements --activate-network
+$WPCLI plugin install user-switching --activate-network
+$WPCLI plugin install https://github.com/next-press/nextpress-dev-env/archive/v0.0.2.zip --activate-network
+$WPCLI plugin install https://github.com/wp-sync-db/wp-sync-db/archive/1.5.zip --activate-network
+$WPCLI plugin install https://github.com/wp-sync-db/wp-sync-db-multisite-tools/archive/delicious-brains.zip --activate-network
+$WPCLI plugin install https://github.com/wp-sync-db/wp-sync-db-media-files/archive/master.zip --activate-network
+ 
+# Install WP Ultimo
+git clone git@github.com:next-press/wp-ultimo.git wp-content/plugins/wp-ultimo
+git checkout base/1.10
+# $WPCLI plugin activate wp-ultimo --network
+
+echo 'Setting Sunrise'
+$WPCLI config set SUNRISE true --raw
+cp wp-content/plugins/wp-ultimo/sunrise.php wp-content/sunrise.php
+
+exit 0
