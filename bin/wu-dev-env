@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SITE_URL=${1-localhost}
+
 WPCLI='docker exec -i docker_wordpress_1 wp'
 
 docker exec docker_mysql_1 mysql -u wordpress -pwordpress wordpress
@@ -32,7 +34,7 @@ define( 'WP_DISABLE_FATAL_ERROR_HANDLER', true );
 PHP
  
 # Install WordPress Multisite
-$WPCLI core multisite-install --url="http://localhost" --title="WP Ultimo Test" --admin_user=admin --admin_password=admin --admin_email=admin@test.local --skip-email
+$WPCLI core multisite-install --url="http://${SITE_URL}" --title="WP Ultimo Test" --admin_user=admin --admin_password=admin --admin_email=admin@test.local --skip-email
 
 # Delete default plugins
 $WPCLI plugin delete akismet
