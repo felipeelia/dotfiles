@@ -13,5 +13,4 @@ alias dockerclear='docker rm -f $(docker ps -a -q)'
 alias docker-update-images='docker images --format "{{.Repository}}:{{.Tag}}" | xargs -L1 docker pull;'
 alias syncfork="git fetch upstream master && git checkout master && git pull upstream master && git push -f origin master"
 alias syncforkdev="git fetch upstream develop && git checkout develop && git pull upstream develop && git push -f origin develop"
-
-
+alias cleanbranches="git branch --merged master | grep -v '^[ *]*master$' | xargs git branch -d"
