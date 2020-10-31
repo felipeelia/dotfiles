@@ -14,4 +14,5 @@ alias docker-update-images='docker images --format "{{.Repository}}:{{.Tag}}" | 
 alias sudo='sudo env PATH=$PATH:$NVM_BIN'
 alias syncfork="git fetch upstream master && git checkout master && git pull upstream master && git push -f origin master"
 alias syncforkdev="git fetch upstream develop && git checkout develop && git pull upstream develop && git push -f origin develop"
+alias syncforktrunk="git fetch upstream trunk && git checkout trunk && git pull upstream trunk && git push -f origin trunk"
 alias cleanbranches="git branch --merged master | grep -v '^[ *]*master$' | xargs git branch -d"
