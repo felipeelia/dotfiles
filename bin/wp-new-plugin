@@ -1,0 +1,77 @@
+#!/bin/bash
+set -euo pipefail
+
+REQUIRED_OPTIONS=0
+DISPLAY_HELP=0
+
+for opt in "$@"; do
+	case $opt in
+	    --slug=*)
+	    PLUGIN_SLUG="${opt#*=}"
+		REQUIRED_OPTIONS=$((REQUIRED_OPTIONS+1))	
+    	;;
+	    --constant-prefix=*)
+	    CONSTANT_PREFIX="${opt#*=}"
+		REQUIRED_OPTIONS=$((REQUIRED_OPTIONS+1))	
+    	;;
+	    --namespace=*)
+	    NAMESPACE="${opt#*=}"
+		REQUIRED_OPTIONS=$((REQUIRED_OPTIONS+1))	
+    	;;
+    	-h|--help|*)
+    	DISPLAY_HELP=1
+    	;;
+	esac
+done
+
+if [ $# -lt 1 ] || [ $DISPLAY_HELP -eq 1 ] || [ $REQUIRED_OPTIONS -lt 3 ]; then
+	echo "This script will create a new plugin from 10up's WP Scaffold."
+	echo "https://github.com/10up/wp-scaffold"
+	echo "Usage: ${0##*/} [OPTION...]"
+	echo 
+	echo "Required options:"
+	echo "--slug=*                    Plugin slug. Replaces 'tenup-plugin'"
+	echo "--constant-prefix=*         Plugin slug. Replaces 'TENUP_PLUGIN'"
+	echo "--namespace=*               Plugin slug. Replaces 'TenUpPlugin'"
+	echo 
+	echo "-h|--help                   Display this help screen"
+	exit
+fi	
+
+if [ -z "$PLUGIN_SLUG" ]; then
+	echo "Parameter --slug can not be empty."
+	exit
+fi
+
+if [ -z "$CONSTANT_PREFIX" ]; then
+	echo "Parameter --constant-prefix can not be empty."
+	exit
+fi
+
+if [ -z "$NAMESPACE" ]; then
+	echo "Parameter --namespace can not be empty."
+	exit
+fi
+
+echo "Downloading files."
+svn export https://github.com/10up/wp-scaffold/trunk/mu-plugins/10up-plugin $PLUGIN_SLUG > /dev/null
+cd $PLUGIN_SLUG
+svn export https://github.com/10up/wp-scaffold/trunk/mu-plugins/10up-plugin-loader.php > /dev/null
+svn export https://github.com/10up/wp-scaffold/trunk/.gitignore > /dev/null
+svn export https://github.com/10up/wp-scaffold/trunk/LICENSE.md > /dev/null
+svn export https://github.com/10up/wp-scaffold/trunk/phpcs.xml > /dev/null
+
+echo "Adjusting plugin file."
+sed -i '/require/d' 10up-plugin-loader.php
+sed -i '/<\?php$/d' plugin.php
+cat plugin.php >> 10up-plugin-loader.php
+rm plugin.php
+mv 10up-plugin-loader.php "$PLUGIN_SLUG.php"
+
+echo "Search and replaces."
+grep -rl 'tenup-plugin' . | xargs sed -i "s/tenup-plugin/$PLUGIN_SLUG/g"
+grep -rl 'TENUP_PLUGIN' . | xargs sed -i "s/TENUP_PLUGIN/$CONSTANT_PREFIX/g"
+grep -rl 'TenUpPlugin' . | xargs sed -i "s/TenUpPlugin/$NAMESPACE/g"
+sed -i "s/10up\/wp-plugin/10up\/$PLUGIN_SLUG/g" composer.json
+
+echo "Done!"
