@@ -16,3 +16,17 @@ alias syncfork="git fetch upstream master && git checkout master && git pull ups
 alias syncforkdev="git fetch upstream develop && git checkout develop && git pull upstream develop && git push -f origin develop"
 alias syncforktrunk="git fetch upstream trunk && git checkout trunk && git pull upstream trunk && git push -f origin trunk"
 alias cleanbranches="git branch --merged master | grep -v '^[ *]*master$' | xargs git branch -d"
+alias clima="curl wttr.in/curitiba"
+alias git-prs="git log trunk..develop --oneline --pretty=format:'%h %aI %s' | grep 'Merge pull request'"
+
+function recreate_db() {
+	DB_NAME=$(grep DB_NAME wordpress/wp-config.php | sed -E 's/define.*,.*'\''(.*)'\''.*/\1/g')
+
+	echo -n "Creating database if required..."
+	10updocker wp db create --dbuser=root 2>&1 > /dev/null
+	echo "Done"
+
+	echo -n "Setting database permissions..."
+	echo "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO 'wordpress'@'%' IDENTIFIED BY 'password';" | 10updocker wp db cli --dbuser=root
+	echo "Done"
+}
