@@ -3,6 +3,7 @@ set -euo pipefail
 
 REQUIRED_OPTIONS=0
 DISPLAY_HELP=0
+SCAFFOLD_PATH="$HOME/projects/10up/wp-scaffold-template-for-new-plugin"
 
 for opt in "$@"; do
 	case $opt in
@@ -53,13 +54,17 @@ if [ -z "$NAMESPACE" ]; then
 	exit
 fi
 
+pushd $SCAFFOLD_PATH
+	git pull
+popd
+
 echo "Downloading files."
-svn export https://github.com/10up/wp-scaffold/trunk/mu-plugins/10up-plugin $PLUGIN_SLUG > /dev/null
+cp -r "$SCAFFOLD_PATH/mu-plugins/10up-plugin" $PLUGIN_SLUG
 cd $PLUGIN_SLUG
-svn export https://github.com/10up/wp-scaffold/trunk/mu-plugins/10up-plugin-loader.php > /dev/null
-svn export https://github.com/10up/wp-scaffold/trunk/.gitignore > /dev/null
-svn export https://github.com/10up/wp-scaffold/trunk/LICENSE.md > /dev/null
-svn export https://github.com/10up/wp-scaffold/trunk/phpcs.xml > /dev/null
+cp "$SCAFFOLD_PATH/mu-plugins/10up-plugin-loader.php" .
+cp "$SCAFFOLD_PATH/.gitignore" .
+cp "$SCAFFOLD_PATH/LICENSE.md" .
+cp "$SCAFFOLD_PATH/phpcs.xml" .
 
 echo "Adjusting plugin file."
 sed -i '/require/d' 10up-plugin-loader.php

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+OS=$(uname)
+
+if [[ "$OS" == 'Linux' ]]; then
+   LOCAL_CONFIG_DIR="$HOME/.config/Local"
+else
+   LOCAL_CONFIG_DIR="$HOME/Library/Application Support/Local"
+fi
+
+URL=$(jq -r '.url' $LOCAL_CONFIG_DIR/graphql-connection-info.json)
+PORT=$(jq -r '.port' $LOCAL_CONFIG_DIR/graphql-connection-info.json)
+
+# Check if Local Graphql is up
+EXIT_CODE=$(nc -z '127.0.0.1' $PORT)$?
+if [ $EXIT_CODE -ne "0" ]; then
+	echo "Starting Local"
+	$(which local) > /dev/null 2>&1 &
+
+	echo "Waiting for Local (10 seconds)"
+	COUNTER=0
+	until [ $EXIT_CODE = "0" ] || [ $COUNTER = 10 ]; do
+		sleep 1
+		EXIT_CODE=$(nc -z '127.0.0.1' $PORT)$?
+		((COUNTER++))
+	done
+	if [ $EXIT_CODE -ne "0" ]; then
+		echo "Local did not start up yet. Giving up"
+		exit 1
+	fi
+fi
+
+AUTH_TOKEN=$(jq -r '.authToken' $LOCAL_CONFIG_DIR/graphql-connection-info.json)
+
+ID=$(jq -r ".[] | select(.path==\"$(pwd)\").id" $LOCAL_CONFIG_DIR/sites.json)
+
+QUERY='mutation ($siteID: ID!) {
+    startSite(id: $siteID) {
+      id
+      name
+      status
+    }
+}
+'
+VARIABLES="{
+  \"siteID\":\"$ID\"
+}"
+
+curl  -X POST \
+  $URL \
+  --header "Authorization: Bearer $AUTH_TOKEN" \
+  --header 'Content-Type: application/json' \
+  -d @- <<EOF
+	{"query": "$QUERY", "variables": $VARIABLES}
+EOF

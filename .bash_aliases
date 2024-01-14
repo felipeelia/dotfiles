@@ -18,6 +18,7 @@ alias syncforktrunk="git fetch upstream trunk && git checkout trunk && git pull 
 alias cleanbranches="git branch --merged master | grep -v '^[ *]*master$' | xargs git branch -d"
 alias clima="curl wttr.in/curitiba"
 alias git-prs="git log trunk..develop --oneline --pretty=format:'%h %aI %s' | grep 'Merge pull request'"
+alias local-wp="/opt/Local/local > /dev/null 2>&1 &"
 
 function recreate_db() {
 	DB_NAME=$(grep DB_NAME wordpress/wp-config.php | sed -E 's/define.*,.*'\''(.*)'\''.*/\1/g')
