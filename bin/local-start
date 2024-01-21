@@ -32,7 +32,7 @@ fi
 
 AUTH_TOKEN=$(jq -r '.authToken' "$LOCAL_CONFIG_DIR/graphql-connection-info.json")
 
-ID=$(jq -r ".[] | select(.path==\"$(pwd)\").id" $LOCAL_CONFIG_DIR/sites.json)
+ID=$(jq -r ".[] | select(.path==\"$(pwd)\").id" "$LOCAL_CONFIG_DIR/sites.json")
 
 QUERY='mutation ($siteID: ID!) {
     startSite(id: $siteID) {
