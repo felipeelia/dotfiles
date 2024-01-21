@@ -8,8 +8,8 @@ else
    LOCAL_CONFIG_DIR="$HOME/Library/Application Support/Local"
 fi
 
-URL=$(jq -r '.url' $LOCAL_CONFIG_DIR/graphql-connection-info.json)
-PORT=$(jq -r '.port' $LOCAL_CONFIG_DIR/graphql-connection-info.json)
+URL=$(jq -r '.url' "$LOCAL_CONFIG_DIR/graphql-connection-info.json")
+PORT=$(jq -r '.port' "$LOCAL_CONFIG_DIR/graphql-connection-info.json")
 
 # Check if Local Graphql is up
 EXIT_CODE=$(nc -z '127.0.0.1' $PORT)$?
@@ -30,9 +30,9 @@ if [ $EXIT_CODE -ne "0" ]; then
 	fi
 fi
 
-AUTH_TOKEN=$(jq -r '.authToken' $LOCAL_CONFIG_DIR/graphql-connection-info.json)
+AUTH_TOKEN=$(jq -r '.authToken' "$LOCAL_CONFIG_DIR/graphql-connection-info.json")
 
-ID=$(jq -r ".[] | select(.path==\"$(pwd)\").id" $LOCAL_CONFIG_DIR/sites.json)
+ID=$(jq -r ".[] | select(.path==\"$(pwd)\").id" "$LOCAL_CONFIG_DIR/sites.json")
 
 QUERY='mutation ($siteID: ID!) {
     startSite(id: $siteID) {
