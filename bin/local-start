@@ -32,7 +32,26 @@ fi
 
 AUTH_TOKEN=$(jq -r '.authToken' "$LOCAL_CONFIG_DIR/graphql-connection-info.json")
 
-ID=$(jq -r ".[] | select(.path==\"$(pwd)\").id" "$LOCAL_CONFIG_DIR/sites.json")
+function getSiteId {
+    DIR="$1"
+    if [ "$DIR" = "/" ]; then
+        return
+    fi
+
+	ID=$(jq -r ".[] | select(.path==\"$DIR\").id" "$LOCAL_CONFIG_DIR/sites.json")
+
+    if [ "$ID" = "" ]; then
+		PARENTDIR=`dirname "$DIR"`
+		getSiteId "$PARENTDIR"
+    fi
+}
+getSiteId "$PWD"
+
+if [ "$ID" = "" ]; then
+	echo Project not found.
+	exit 1
+fi
+
 
 QUERY='mutation ($siteID: ID!) {
     startSite(id: $siteID) {
