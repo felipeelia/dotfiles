@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -eo pipefail
+
+echo "Visit https://localwp.com/releases/ and get the URL of the latest version for Linux."
+read -p "Paste the .deb download link: " DOWNLOAD_LINK
+echo "Downloading package"
+wget $DOWNLOAD_LINK -O local-linux.deb
+
+echo ""
+echo "Installing the package."
+sudo dpkg -i local-linux.deb
+echo ""
+
+echo "Identify your current nginx version"
+ls ~/.config/Local/lightning-services | grep nginx
+read -p "Enter the nginx version: " NGINX_VERSION
+echo "Fixing permissions"
+sudo setcap cap_net_bind_service=+ep ~/.config/Local/lightning-services/$NGINX_VERSION/bin/linux/sbin/nginx
+echo ""
+
+echo "Cleaning up"
+rm local-linux.deb
+
+echo "Done."
